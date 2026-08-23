@@ -310,11 +310,19 @@ def check_runtime():
 
     major, minor = torch.cuda.get_device_capability()
     arch = f"sm_{major}{minor}"
-    arch_list = torch.cuda.get_arch_list()
-    if arch not in arch_list:
+
+    # Run a real kernel rather than checking `arch in get_arch_list()`. That
+    # comparison gives false negatives: an RTX 4090 reports sm_89, which the
+    # cu128 wheels do not list, yet it runs fine because the driver JITs from
+    # PTX. Executing an op is the only reliable answer.
+    try:
+        probe = torch.randn(8, 8, device="cuda")
+        (probe @ probe).sum().item()
+    except Exception as error:
         raise SystemExit(
-            f"This PyTorch build has no kernels for {torch.cuda.get_device_name(0)} ({arch}).\n"
-            f"It was built for: {', '.join(arch_list)}\n"
+            f"This PyTorch build cannot run kernels on {torch.cuda.get_device_name(0)} ({arch}).\n"
+            f"It was built for: {', '.join(torch.cuda.get_arch_list())}\n"
+            f"Underlying error: {error}\n"
             "Reinstall with a PyTorch build that targets your GPU."
         )
 

@@ -10,13 +10,20 @@
 # official Windows wheels and takes hours to build from source elsewhere, for
 # a speedup that is smallest in exactly this regime: batch-1 autoregressive
 # decode over sentence-length chunks.
+#
+# fasttext is omitted as well. It only powers language auto-detection, which
+# upstream wraps in try/except, and the UI exposes an explicit language
+# dropdown regardless. Its 0.9.3 sdist does not compile against current MSVC,
+# and a build failure here would take the whole resolve down with it.
 transformers==5.6.2
 einops==0.8.2
 python-dotenv
 regex
 numpy
 wetext
-fasttext
 huggingface_hub
 soundfile
-gradio==5.45.0
+# Not pinned to an exact version: transformers 5.6.2 requires
+# huggingface-hub >=1.5, and gradio only accepts hub 1.x from 5.50 onward.
+# Held below 6 because webui.py is written against the gradio 5 API.
+gradio>=5.50,<6
