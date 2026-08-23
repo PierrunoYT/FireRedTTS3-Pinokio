@@ -324,6 +324,20 @@ def check_runtime():
             "FireRedTTS3 requires. An Ampere (RTX 30-series) or newer GPU is needed."
         )
 
+    # Pinokio does not abort a script when a step exits nonzero, so a failed
+    # `git apply` during Install would otherwise surface much later as an
+    # opaque ImportError deep inside from_pretrained.
+    from fireredtts3.llm.fireredtts3_base import Qwen3_1_7B_ConfigDict
+
+    if Qwen3_1_7B_ConfigDict.get("attn_implementation") == "flash_attention_2":
+        try:
+            import flash_attn  # noqa: F401
+        except ImportError:
+            raise SystemExit(
+                "The upstream checkout still requests FlashAttention, and flash_attn is not "
+                "installed. sdpa.patch did not apply. Run Reset, then Install again."
+            )
+
     total = torch.cuda.get_device_properties(0).total_memory / 1024 ** 3
     if total < 15:
         print(

@@ -28,6 +28,23 @@ module.exports = {
         message: "git clone https://github.com/FireRedTeam/FireRedTTS3.git src"
       }
     },
+    // Swap the three hardcoded FlashAttention call sites for PyTorch SDPA,
+    // which every model class here already declares support for. This is what
+    // keeps flash_attn out of requirements.txt: it has no Windows wheels and
+    // compiling it from source takes hours and often fails.
+    //
+    // The checkout is restored first, so re-running Install over an already
+    // patched tree is a no-op rather than a conflict.
+    {
+      method: "shell.run",
+      params: {
+        path: "app/src",
+        message: [
+          "git checkout -- fireredtts3/llm/fireredtts3_base.py fireredtts3/redae/redae.py",
+          "git apply ../../sdpa.patch"
+        ]
+      }
+    },
     {
       method: "shell.run",
       params: {

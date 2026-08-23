@@ -1,13 +1,15 @@
 # FireRedTTS3 dependencies, mirroring the upstream requirements.txt.
 #
 # torch and torchaudio are omitted: the launcher's torch.js installs builds
-# matched to the detected GPU before this file resolves.
+# matched to the detected GPU.
 #
-# flash_attn is required, not optional. Upstream hardcodes
+# flash_attn is omitted too. Upstream hardcodes
 # attn_implementation='flash_attention_2' for the backbone and the audio
-# autoencoder, so model loading fails without it. It has no official Windows
-# wheels and builds from source elsewhere.
-flash_attn==2.8.3
+# autoencoder, but sdpa.patch swaps those three call sites for PyTorch SDPA,
+# which the model classes already declare support for. FlashAttention has no
+# official Windows wheels and takes hours to build from source elsewhere, for
+# a speedup that is smallest in exactly this regime: batch-1 autoregressive
+# decode over sentence-length chunks.
 transformers==5.6.2
 einops==0.8.2
 python-dotenv

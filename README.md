@@ -6,9 +6,10 @@ unified speech generation and editing model. It clones a voice from one
 reference recording across 24 languages and 21 Chinese dialects, designs a new
 voice from a written description, and edits existing recordings by instruction.
 
-The upstream source is installed unmodified into `app/src`. The only thing
-this launcher adds is a Web UI, `app/webui.py`, which sits beside the checkout
-rather than inside it so that Update and Reset can replace `app/src` freely.
+The launcher adds two things to the upstream checkout in `app/src`: a Web UI,
+`app/webui.py`, which sits beside it rather than inside it so Update and Reset
+can replace `app/src` freely; and `sdpa.patch`, a three-line change that swaps
+the hardcoded FlashAttention backend for PyTorch SDPA.
 
 ## Features
 
@@ -29,7 +30,6 @@ systems in its comparison table.
 - **An NVIDIA GPU with 16 GB of VRAM**, Ampere (RTX 30-series) or newer
 - **About 21 GB of disk space for the checkpoints**, plus room for the
   environment and generated audio
-- A working `flash_attn` build for your platform
 
 ### CUDA only
 
@@ -48,14 +48,26 @@ a CUDA device exists, that the installed PyTorch actually contains kernels for
 its `sm_XX` architecture, and that the card supports bfloat16 natively. It
 also warns below 15 GB of VRAM.
 
-### flash_attn
+### Attention backend
 
-`flash_attn==2.8.3` is a hard requirement, not an optimization: model loading
-raises without it. There are no official Windows wheels, and on other
-platforms pip builds it from source, which needs a CUDA toolkit and a lot of
-time and RAM. If `uv pip install -r requirements.txt` fails on `flash_attn`,
-install a prebuilt wheel matching your Python, torch, and CUDA versions into
-`app/env` first, then run Install again.
+Upstream hardcodes `attn_implementation='flash_attention_2'` in three places:
+the LLM backbone config, and twice in the audio autoencoder. `flash_attn` has
+no official Windows wheels, and elsewhere pip builds it from source — hours of
+compiling that frequently fails.
+
+`sdpa.patch` changes those three strings to `'sdpa'`, so attention runs
+through PyTorch's built-in scaled dot-product attention instead. Every model
+class involved already declares `_supports_sdpa = True`; the authors simply
+did not expose a switch. Install applies the patch after cloning, restoring
+the two files first so re-running it is a no-op rather than a conflict.
+
+This costs some speed. FlashAttention's advantage grows with sequence length
+and batch size, and this is batch-1 autoregressive decode over sentence-length
+chunks — the regime where the gap is narrowest. Output is unaffected.
+
+If you would rather have FlashAttention, install a prebuilt wheel matching
+your Python, torch, and CUDA into `app/env`, then delete the `git apply` step
+from `install.js`.
 
 ### Memory
 
@@ -123,6 +135,7 @@ have permission to use.
 | `reset.js` | Remove the environment, source, checkpoints, and outputs |
 | `link.js` | Deduplicate installed Python libraries |
 | `torch.js` | Platform-matched PyTorch selection |
+| `sdpa.patch` | Swaps the hardcoded FlashAttention backend for PyTorch SDPA |
 | `app/webui.py` | The Gradio interface, and the startup GPU check |
 | `app/requirements.txt` | Upstream dependencies, minus torch and torchaudio |
 
