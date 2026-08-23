@@ -1,10 +1,17 @@
 module.exports = {
   version: "5.0",
   menu: async (kernel, info) => {
+    // `installed` gates Start, so it requires the checkpoints. `started`
+    // tracks whether anything is on disk at all: an install that failed part
+    // way through is not usable, but it still needs a Reset to clean up.
     const installed =
       info.exists("app/env") &&
       info.exists("app/src/fireredtts3/core.py") &&
       info.exists("app/src/pretrained_models/redae/model.safetensors")
+    const started =
+      info.exists("app/env") ||
+      info.exists("app/src") ||
+      info.exists("app/outputs")
     const running = {
       install: info.running("install.js"),
       start: info.running("start.js"),
@@ -23,12 +30,22 @@ module.exports = {
     }
 
     if (!installed) {
-      return [{
+      const menu = [{
         default: true,
         icon: "fa-solid fa-plug",
-        text: "Install",
+        text: started ? "Resume Install" : "Install",
         href: "install.js"
       }]
+      // Without this, a failed install offers no way out of the UI.
+      if (started) {
+        menu.push({
+          icon: "fa-regular fa-circle-xmark",
+          text: "<div><strong>Reset</strong><div>Remove the environment, source, models, and outputs</div></div>",
+          href: "reset.js",
+          confirm: "Reset FireRedTTS3 and delete its downloaded models and generated outputs?"
+        })
+      }
+      return menu
     }
 
     if (running.start) {
