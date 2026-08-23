@@ -1,0 +1,20 @@
+# FireRedTTS3 dependencies, mirroring the upstream requirements.txt.
+#
+# torch and torchaudio are omitted: the launcher's torch.js installs builds
+# matched to the detected GPU before this file resolves.
+#
+# flash_attn is required, not optional. Upstream hardcodes
+# attn_implementation='flash_attention_2' for the backbone and the audio
+# autoencoder, so model loading fails without it. It has no official Windows
+# wheels and builds from source elsewhere.
+flash_attn==2.8.3
+transformers==5.6.2
+einops==0.8.2
+python-dotenv
+regex
+numpy
+wetext
+fasttext
+huggingface_hub
+soundfile
+gradio==5.45.0

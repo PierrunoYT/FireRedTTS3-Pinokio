@@ -1,0 +1,23 @@
+{
+  "title": "FireRedTTS3",
+  "description": "Zero-shot voice cloning across 24 languages and 21 Chinese dialects, plus instruction-driven voice design and semantic and acoustic speech editing.",
+  "icon": "icon.jpeg",
+  "links": [
+    {
+      "title": "Upstream source",
+      "value": "https://github.com/FireRedTeam/FireRedTTS3"
+    },
+    {
+      "title": "Model weights",
+      "value": "https://huggingface.co/FireRedTeam/FireRedTTS3"
+    },
+    {
+      "title": "Demo page",
+      "value": "https://fireredteam.github.io/demos/firered_tts_3/"
+    },
+    {
+      "title": "Technical report",
+      "value": "https://arxiv.org/abs/2608.17492"
+    }
+  ]
+}
