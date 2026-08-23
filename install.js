@@ -29,16 +29,6 @@ module.exports = {
       }
     },
     {
-      method: "script.start",
-      params: {
-        uri: "torch.js",
-        params: {
-          venv: "env",
-          path: "app"
-        }
-      }
-    },
-    {
       method: "shell.run",
       params: {
         venv: "env",
@@ -46,6 +36,19 @@ module.exports = {
         message: [
           "uv pip install -r requirements.txt"
         ]
+      }
+    },
+    // Last, so that the platform-matched build wins. Resolving
+    // requirements.txt pulls in whatever torch the dependency graph asks for,
+    // and torch.js force-reinstalls over it.
+    {
+      method: "script.start",
+      params: {
+        uri: "torch.js",
+        params: {
+          venv: "env",
+          path: "app"
+        }
       }
     },
     // Base + Instruct + RedAE + speaker encoder, about 21 GB in total.
