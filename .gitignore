@@ -53,6 +53,7 @@ models/
 checkpoints/
 pretrained_models/
 app/src/
+app/.dependencies-ready
 outputs/
 voices/
 *.jpg
@@ -72,4 +73,3 @@ logs/
 tmp/
 temp/
 *.tmp
-

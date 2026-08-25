@@ -3,6 +3,16 @@ module.exports = {
     bundle: "ai"
   },
   run: [
+    // Invalidated up front and recreated only after the installed PyTorch
+    // packages can actually be imported. This prevents a failed reinstall
+    // from leaving the launcher's previous ready state behind.
+    {
+      when: "{{exists('app/.dependencies-ready')}}",
+      method: "fs.rm",
+      params: {
+        path: "app/.dependencies-ready"
+      }
+    },
     // `fireredtts3/core.py` is the marker for a usable checkout. Testing for
     // it rather than for `.git` also catches a checkout of a different
     // project, which is what earlier versions of this launcher installed.
@@ -68,8 +78,17 @@ module.exports = {
         }
       }
     },
+    {
+      method: "shell.run",
+      params: {
+        venv: "env",
+        path: "app",
+        message: "python -c \"import torch, torchaudio; from pathlib import Path; Path('.dependencies-ready').touch()\""
+      }
+    },
     // Base + Instruct + RedAE + speaker encoder, about 21 GB in total.
     {
+      when: "{{exists('app/.dependencies-ready')}}",
       method: "shell.run",
       params: {
         venv: "../env",
@@ -80,6 +99,7 @@ module.exports = {
       }
     },
     {
+      when: "{{exists('app/.dependencies-ready') && exists('app/src/pretrained_models/redae/model.safetensors')}}",
       method: "notify",
       params: {
         html: "FireRedTTS3 installation complete. Click Start to open the Web UI."

@@ -6,6 +6,7 @@ module.exports = {
     // way through is not usable, but it still needs a Reset to clean up.
     const installed =
       info.exists("app/env") &&
+      info.exists("app/.dependencies-ready") &&
       info.exists("app/src/fireredtts3/core.py") &&
       info.exists("app/src/pretrained_models/redae/model.safetensors")
     const started =
