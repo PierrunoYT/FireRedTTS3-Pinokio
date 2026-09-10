@@ -13,6 +13,14 @@ module.exports = {
         path: "app/.dependencies-ready"
       }
     },
+    // Invalidate completion before retrying any installation steps.
+    {
+      when: "{{exists('app/src/pretrained_models/.download-complete')}}",
+      method: "fs.rm",
+      params: {
+        path: "app/src/pretrained_models/.download-complete"
+      }
+    },
     // `fireredtts3/core.py` is the marker for a usable checkout. Testing for
     // it rather than for `.git` also catches a checkout of a different
     // project, which is what earlier versions of this launcher installed.
@@ -94,12 +102,12 @@ module.exports = {
         venv: "../env",
         path: "app/src",
         message: [
-          "python -c \"from huggingface_hub import snapshot_download; snapshot_download('FireRedTeam/FireRedTTS3', local_dir='pretrained_models')\""
+          "python -c \"from pathlib import Path; from huggingface_hub import snapshot_download; snapshot_download('FireRedTeam/FireRedTTS3', local_dir='pretrained_models'); Path('pretrained_models/.download-complete').touch()\""
         ]
       }
     },
     {
-      when: "{{exists('app/.dependencies-ready') && exists('app/src/pretrained_models/redae/model.safetensors')}}",
+      when: "{{exists('app/.dependencies-ready') && exists('app/src/pretrained_models/redae/model.safetensors') && exists('app/src/pretrained_models/.download-complete')}}",
       method: "notify",
       params: {
         html: "FireRedTTS3 installation complete. Click Start to open the Web UI."

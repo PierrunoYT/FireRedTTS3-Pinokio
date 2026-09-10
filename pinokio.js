@@ -8,7 +8,8 @@ module.exports = {
       info.exists("app/env") &&
       info.exists("app/.dependencies-ready") &&
       info.exists("app/src/fireredtts3/core.py") &&
-      info.exists("app/src/pretrained_models/redae/model.safetensors")
+      info.exists("app/src/pretrained_models/redae/model.safetensors") &&
+      info.exists("app/src/pretrained_models/.download-complete")
     const started =
       info.exists("app/env") ||
       info.exists("app/src") ||
@@ -28,25 +29,6 @@ module.exports = {
         text: "Installing FireRedTTS3",
         href: "install.js"
       }]
-    }
-
-    if (!installed) {
-      const menu = [{
-        default: true,
-        icon: "fa-solid fa-plug",
-        text: started ? "Resume Install" : "Install",
-        href: "install.js"
-      }]
-      // Without this, a failed install offers no way out of the UI.
-      if (started) {
-        menu.push({
-          icon: "fa-regular fa-circle-xmark",
-          text: "<div><strong>Reset</strong><div>Remove the environment, source, models, and outputs</div></div>",
-          href: "reset.js",
-          confirm: "Reset FireRedTTS3 and delete its downloaded models and generated outputs?"
-        })
-      }
-      return menu
     }
 
     if (running.start) {
@@ -96,6 +78,25 @@ module.exports = {
         text: "Deduplicating",
         href: "link.js"
       }]
+    }
+
+    if (!installed) {
+      const menu = [{
+        default: true,
+        icon: "fa-solid fa-plug",
+        text: started ? "Resume Install" : "Install",
+        href: "install.js"
+      }]
+      // Without this, a failed install offers no way out of the UI.
+      if (started) {
+        menu.push({
+          icon: "fa-regular fa-circle-xmark",
+          text: "<div><strong>Reset</strong><div>Remove the environment, source, models, and outputs</div></div>",
+          href: "reset.js",
+          confirm: "Reset FireRedTTS3 and delete its downloaded models and generated outputs?"
+        })
+      }
+      return menu
     }
 
     return [{
