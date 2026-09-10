@@ -326,7 +326,7 @@ def check_runtime():
             "Reinstall with a PyTorch build that targets your GPU."
         )
 
-    if not torch.cuda.is_bf16_supported():
+    if not torch.cuda.is_bf16_supported(including_emulation=False):
         raise SystemExit(
             f"{torch.cuda.get_device_name(0)} ({arch}) has no native bfloat16 support, which "
             "FireRedTTS3 requires. An Ampere (RTX 30-series) or newer GPU is needed."
@@ -356,6 +356,7 @@ def check_runtime():
 
 
 def build_ui(model_dir: str):
+    # All synthesis events share one queue: model swaps must wait for inference.
     runtime = describe_runtime()
 
     with gr.Blocks(title="FireRedTTS3", theme=gr.themes.Soft()) as demo:
@@ -401,6 +402,8 @@ def build_ui(model_dir: str):
                     clone_adv[4], clone_adv[5], clone_adv[6],
                 ],
                 outputs=[clone_output, clone_status],
+                concurrency_id="gpu",
+                concurrency_limit=1,
             )
 
         with gr.Tab("Voice Design"):
@@ -435,6 +438,8 @@ def build_ui(model_dir: str):
                     design_adv[4], design_adv[5], design_adv[6],
                 ],
                 outputs=[design_output, design_plan, design_status],
+                concurrency_id="gpu",
+                concurrency_limit=1,
             )
 
         with gr.Tab("Semantic Edit"):
@@ -466,6 +471,8 @@ def build_ui(model_dir: str):
                     semantic_adv[0], semantic_adv[1], semantic_adv[3],
                 ],
                 outputs=[semantic_output, semantic_text, semantic_status],
+                concurrency_id="gpu",
+                concurrency_limit=1,
             )
 
         with gr.Tab("Acoustic Edit"):
@@ -510,6 +517,8 @@ def build_ui(model_dir: str):
                     acoustic_adv[0], acoustic_adv[1], acoustic_adv[3],
                 ],
                 outputs=[acoustic_output, acoustic_status],
+                concurrency_id="gpu",
+                concurrency_limit=1,
             )
 
         with gr.Tab("Cloning (Instruct)"):
@@ -542,6 +551,8 @@ def build_ui(model_dir: str):
                     ic_adv[4], ic_adv[5], ic_adv[6],
                 ],
                 outputs=[ic_output, ic_status],
+                concurrency_id="gpu",
+                concurrency_limit=1,
             )
 
         gr.Markdown(
