@@ -23,6 +23,13 @@ numpy
 wetext
 huggingface_hub
 soundfile
+filelock
+typing-extensions>=4.10.0
+sympy>=1.13.3
+networkx
+jinja2
+fsspec
+setuptools
 # Not pinned to an exact version: transformers 5.6.2 requires
 # huggingface-hub >=1.5, and gradio only accepts hub 1.x from 5.50 onward.
 # Held below 6 because webui.py is written against the gradio 5 API.

@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
 const launcher = require('../pinokio.js')
+const torch = require('../torch.js')
 
 const complete = [
   'app/env',
@@ -49,4 +50,18 @@ test('a running server still opens its captured URL', async () => {
   const result = await menu(complete, 'start.js', {url: 'http://127.0.0.1:7860'})
   assert.equal(result[0].href, 'http://127.0.0.1:7860')
   assert.equal(result[1].href, 'start.js')
+})
+
+test('PyTorch wheel installs bypass Bluefairy and CUDA avoids dependency resolution', () => {
+  assert.ok(torch.run.length > 0)
+  for (const step of torch.run) {
+    assert.equal(step.params.bluefairy, 'off')
+  }
+
+  const cuda = torch.run.filter(step => step.when.includes("gpu === 'nvidia'"))
+  assert.equal(cuda.length, 2)
+  for (const step of cuda) {
+    assert.match(step.params.message, /--index-url https:\/\/download\.pytorch\.org\/whl\/cu128/)
+    assert.match(step.params.message, /--no-deps/)
+  }
 })
