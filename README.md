@@ -151,3 +151,15 @@ Inside `app/`, everything except those two files is generated and safe to
 delete: `env/` is the virtual environment, `src/` is the upstream checkout
 including its `pretrained_models/` checkpoints, and `outputs/` holds generated
 audio. Reset removes all three.
+
+## Tests
+
+Neither suite needs a GPU or the model weights:
+
+```
+node --test tests/launcher.test.js
+python -m unittest tests/test_runtime.py
+```
+
+Name the file for `node --test`: on Windows, passing the `tests/` directory
+makes Node try to run it as a single file and fail.
