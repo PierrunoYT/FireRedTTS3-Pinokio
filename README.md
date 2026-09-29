@@ -103,15 +103,19 @@ Generated audio is written to `app/outputs/`.
 ### Language selection
 
 Upstream recommends an explicit language tag over auto-detection, and the
-dropdown lists all 24 languages and 21 dialects. Auto-detect uses FastText
-when its language-id model is present; the launcher does not download it, so
-until you fetch it yourself, detection falls back to the package's own script
-heuristic:
+dropdown lists all 24 languages and 21 dialects. Auto-detect falls back to
+the package's own script heuristic unless FastText is available, and the
+launcher installs neither the `fasttext` package (its sdist does not build
+against current MSVC) nor its language-id model. To enable it, install both
+yourself; the model alone does nothing:
 
 ```
+uv pip install --python app/env fasttext-wheel
 curl -L -o app/src/fireredtts3/utils/llm_tn/models/lid.176.ftz \
   https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz
 ```
+
+`fasttext-wheel` ships prebuilt wheels of the same `fasttext` module.
 
 ### Text normalization
 
