@@ -89,7 +89,9 @@ MANAGER: ModelManager = None
 
 def save_audio(audio: torch.Tensor, sample_rate: int, prefix: str) -> str:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    # Millisecond precision: two quick edits within one second would
+    # otherwise overwrite each other.
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")[:-3]
     path = os.path.join(OUTPUT_DIR, f"{prefix}-{stamp}.wav")
     torchaudio.save(path, audio.cpu(), sample_rate)
     return path

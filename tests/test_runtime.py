@@ -1,5 +1,6 @@
 """Exercise UI registration and GPU validation without downloading model weights."""
 import ast
+import os
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -47,6 +48,21 @@ class RuntimeTests(unittest.TestCase):
         self.assertNotIn(None, groups)
         for call in registrations:
             self.assertEqual(call.kwargs["concurrency_limit"], 1)
+
+    def test_outputs_saved_in_the_same_second_do_not_collide(self):
+        import datetime as dt
+        saved = []
+        torchaudio = MagicMock()
+        torchaudio.save.side_effect = lambda path, *args: saved.append(path)
+        moments = iter([dt.datetime(2026, 1, 1, 12, 0, 0, 100000), dt.datetime(2026, 1, 1, 12, 0, 0, 900000)])
+        clock = MagicMock()
+        clock.now.side_effect = lambda: next(moments)
+        save_audio = load_function("save_audio", {
+            "os": SimpleNamespace(makedirs=lambda *a, **k: None, path=os.path), "datetime": clock, "torchaudio": torchaudio, "torch": MagicMock(), "OUTPUT_DIR": "out",
+        })
+        save_audio(MagicMock(), 24000, "edit")
+        save_audio(MagicMock(), 24000, "edit")
+        self.assertEqual(len(set(saved)), 2)
 
     def check_gpu(self, native):
         cuda = MagicMock()
