@@ -64,6 +64,15 @@ class RuntimeTests(unittest.TestCase):
         save_audio(MagicMock(), 24000, "edit")
         self.assertEqual(len(set(saved)), 2)
 
+    def test_cleared_seed_is_a_readable_error(self):
+        class UIError(Exception):
+            pass
+
+        resolve_seed = load_function("resolve_seed", {"gr": SimpleNamespace(Error=UIError)})
+        self.assertEqual(resolve_seed(7.0), 7)
+        with self.assertRaisesRegex(UIError, "seed"):
+            resolve_seed(None)
+
     def check_gpu(self, native):
         cuda = MagicMock()
         cuda.is_available.return_value = True

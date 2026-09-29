@@ -106,6 +106,13 @@ def resolve_language(choice: str):
     return None if choice == AUTO_LANGUAGE else choice
 
 
+def resolve_seed(seed) -> int:
+    # A cleared gr.Number arrives as None.
+    if seed is None:
+        raise gr.Error("Enter a seed (any whole number).")
+    return int(seed)
+
+
 def run_clone(
     prompt_audio_path, prompt_text, text, language,
     n_timesteps, inference_cfg, stop_threshold, seed,
@@ -122,6 +129,7 @@ def run_clone(
             "the reference text, so an empty or wrong transcript degrades the clone."
         )
 
+    seed = resolve_seed(seed)
     model = MANAGER.get("base", progress)
     prompt_audio, prompt_audio_sr = load_prompt(prompt_audio_path)
     progress(0.4, desc="Synthesizing")
@@ -135,7 +143,7 @@ def run_clone(
         n_timesteps=int(n_timesteps),
         inference_cfg=float(inference_cfg),
         stop_threshold=float(stop_threshold),
-        seed=int(seed),
+        seed=seed,
         do_tn=bool(do_tn),
         do_split=bool(do_split),
         cross_fade_ms=float(cross_fade_ms),
@@ -156,6 +164,7 @@ def run_voice_design(
     if not text or not text.strip():
         raise gr.Error("Enter some text to synthesize.")
 
+    seed = resolve_seed(seed)
     model = MANAGER.get("instruct", progress)
     progress(0.4, desc="Planning voice and synthesizing")
     audio, sr, plan = model.generate_voice_design(
@@ -164,7 +173,7 @@ def run_voice_design(
         language=resolve_language(language),
         n_timesteps=int(n_timesteps),
         inference_cfg=float(inference_cfg),
-        seed=int(seed),
+        seed=seed,
         do_tn=bool(do_tn),
         do_split=bool(do_split),
         cross_fade_ms=float(cross_fade_ms),
@@ -186,6 +195,7 @@ def run_instruct_clone(
     if not text or not text.strip():
         raise gr.Error("Enter some text to synthesize.")
 
+    seed = resolve_seed(seed)
     model = MANAGER.get("instruct", progress)
     prompt_audio, prompt_audio_sr = load_prompt(prompt_audio_path)
     progress(0.4, desc="Synthesizing")
@@ -198,7 +208,7 @@ def run_instruct_clone(
         n_timesteps=int(n_timesteps),
         inference_cfg=float(inference_cfg),
         stop_threshold=float(stop_threshold),
-        seed=int(seed),
+        seed=seed,
         do_tn=bool(do_tn),
         do_split=bool(do_split),
         cross_fade_ms=float(cross_fade_ms),
@@ -213,6 +223,7 @@ def run_semantic_edit(audio_path, instruction, n_timesteps, inference_cfg, seed,
     if not instruction or not instruction.strip():
         raise gr.Error("Describe the edit, for example: Replace 'cats' with 'dogs'.")
 
+    seed = resolve_seed(seed)
     model = MANAGER.get("instruct", progress)
     audio_in, audio_in_sr = load_prompt(audio_path)
     progress(0.4, desc="Editing")
@@ -222,7 +233,7 @@ def run_semantic_edit(audio_path, instruction, n_timesteps, inference_cfg, seed,
         audio_in_sr=audio_in_sr,
         n_timesteps=int(n_timesteps),
         inference_cfg=float(inference_cfg),
-        seed=int(seed),
+        seed=seed,
     )
     path = save_audio(audio, sr, "edit-semantic")
     return path, edited_text or "", f"Saved to {path}"
@@ -244,6 +255,7 @@ def run_acoustic_edit(audio_path, kind, speed, pitch, volume, n_timesteps, infer
     else:
         instruction = f"adjust the volume to {volume:.1f}"
 
+    seed = resolve_seed(seed)
     model = MANAGER.get("instruct", progress)
     audio_in, audio_in_sr = load_prompt(audio_path)
     progress(0.4, desc="Editing")
@@ -253,7 +265,7 @@ def run_acoustic_edit(audio_path, kind, speed, pitch, volume, n_timesteps, infer
         audio_in_sr=audio_in_sr,
         n_timesteps=int(n_timesteps),
         inference_cfg=float(inference_cfg),
-        seed=int(seed),
+        seed=seed,
     )
     path = save_audio(audio, sr, "edit-acoustic")
     return path, f'Applied "{instruction}". Saved to {path}'
