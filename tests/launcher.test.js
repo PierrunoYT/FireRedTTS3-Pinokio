@@ -52,6 +52,19 @@ test('a running server still opens its captured URL', async () => {
   assert.equal(result[1].href, 'start.js')
 })
 
+test('install does nothing heavy without an NVIDIA GPU', () => {
+  const install = require('../install.js')
+  for (const step of install.run) {
+    if (!['shell.run', 'script.start'].includes(step.method)) continue
+    // Either gated directly, or gated on the marker only an NVIDIA run creates.
+    assert.ok(
+      /gpu === 'nvidia'/.test(step.when) || /exists\('app\/\.dependencies-ready'\)/.test(step.when),
+      JSON.stringify(step.params.message || step.params.uri)
+    )
+  }
+  assert.ok(install.run.some(step => step.method === 'notify' && step.when === "{{gpu !== 'nvidia'}}"))
+})
+
 test('the ready marker requires requirements.txt packages, not just PyTorch', () => {
   for (const script of [require('../install.js'), require('../link.js')]) {
     const step = script.run.find(step =>

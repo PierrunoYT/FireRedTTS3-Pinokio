@@ -3,6 +3,17 @@ module.exports = {
     bundle: "ai"
   },
   run: [
+    // FireRedTTS3 needs CUDA and native bfloat16 (see webui.py's
+    // check_runtime), so every step that installs or downloads anything is
+    // gated on an NVIDIA GPU. Without this, other machines would download
+    // about 21 GB of checkpoints only for Start to refuse to run.
+    {
+      when: "{{gpu !== 'nvidia'}}",
+      method: "notify",
+      params: {
+        html: "FireRedTTS3 requires an NVIDIA GPU (RTX 30-series or newer). No NVIDIA GPU was detected, so nothing was installed."
+      }
+    },
     // Invalidated up front and recreated only after PyTorch and the packages
     // from requirements.txt can actually be imported. Pinokio does not abort
     // on a failed step, so this import is what keeps a failed resolve from
@@ -40,7 +51,7 @@ module.exports = {
       }
     },
     {
-      when: "{{!exists('app/src/fireredtts3/core.py')}}",
+      when: "{{gpu === 'nvidia' && !exists('app/src/fireredtts3/core.py')}}",
       method: "shell.run",
       params: {
         path: "app",
@@ -55,6 +66,7 @@ module.exports = {
     // The checkout is restored first, so re-running Install over an already
     // patched tree is a no-op rather than a conflict.
     {
+      when: "{{gpu === 'nvidia'}}",
       method: "shell.run",
       params: {
         path: "app/src",
@@ -65,6 +77,7 @@ module.exports = {
       }
     },
     {
+      when: "{{gpu === 'nvidia'}}",
       method: "shell.run",
       params: {
         venv: "env",
@@ -78,6 +91,7 @@ module.exports = {
     // requirements.txt pulls in whatever torch the dependency graph asks for,
     // and torch.js force-reinstalls over it.
     {
+      when: "{{gpu === 'nvidia'}}",
       method: "script.start",
       params: {
         uri: "torch.js",
@@ -88,6 +102,7 @@ module.exports = {
       }
     },
     {
+      when: "{{gpu === 'nvidia'}}",
       method: "shell.run",
       params: {
         venv: "env",

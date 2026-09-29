@@ -31,6 +31,9 @@ systems in its comparison table.
 - **About 21 GB of disk space for the checkpoints**, plus room for the
   environment and generated audio
 
+Install checks for an NVIDIA GPU first. Without one it stops with a message
+instead of downloading anything.
+
 ### CUDA only
 
 Upstream hardcodes three things: `torch.device('cuda')`, a bfloat16 autocast
