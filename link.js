@@ -18,7 +18,7 @@ module.exports = {
       params: {
         venv: "env",
         path: "app",
-        message: "python -c \"import torch, torchaudio; from pathlib import Path; Path('.dependencies-ready').touch()\""
+        message: "python -c \"import torch, torchaudio, transformers, gradio, wetext, einops, soundfile, huggingface_hub; from pathlib import Path; Path('.dependencies-ready').touch()\""
       }
     }
   ]

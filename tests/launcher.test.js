@@ -52,6 +52,16 @@ test('a running server still opens its captured URL', async () => {
   assert.equal(result[1].href, 'start.js')
 })
 
+test('the ready marker requires requirements.txt packages, not just PyTorch', () => {
+  for (const script of [require('../install.js'), require('../link.js')]) {
+    const step = script.run.find(step =>
+      typeof step.params.message === 'string' && step.params.message.includes('.dependencies-ready'))
+    for (const module of ['torch', 'torchaudio', 'transformers', 'gradio', 'wetext']) {
+      assert.match(step.params.message, new RegExp(`import [^;]*\\b${module}\\b`), module)
+    }
+  }
+})
+
 test('PyTorch wheel installs bypass Bluefairy and CUDA avoids dependency resolution', () => {
   assert.ok(torch.run.length > 0)
   for (const step of torch.run) {

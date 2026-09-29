@@ -3,9 +3,10 @@ module.exports = {
     bundle: "ai"
   },
   run: [
-    // Invalidated up front and recreated only after the installed PyTorch
-    // packages can actually be imported. This prevents a failed reinstall
-    // from leaving the launcher's previous ready state behind.
+    // Invalidated up front and recreated only after PyTorch and the packages
+    // from requirements.txt can actually be imported. Pinokio does not abort
+    // on a failed step, so this import is what keeps a failed resolve from
+    // being marked ready.
     {
       when: "{{exists('app/.dependencies-ready')}}",
       method: "fs.rm",
@@ -91,7 +92,7 @@ module.exports = {
       params: {
         venv: "env",
         path: "app",
-        message: "python -c \"import torch, torchaudio; from pathlib import Path; Path('.dependencies-ready').touch()\""
+        message: "python -c \"import torch, torchaudio, transformers, gradio, wetext, einops, soundfile, huggingface_hub; from pathlib import Path; Path('.dependencies-ready').touch()\""
       }
     },
     // Base + Instruct + RedAE + speaker encoder, about 21 GB in total.
