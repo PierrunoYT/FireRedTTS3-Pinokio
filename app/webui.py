@@ -1,7 +1,7 @@
 """Gradio Web UI for FireRedTTS3.
 
-Upstream ships a Python API but no interface, so this launcher provides one.
-It exposes the four documented tasks -- zero-shot voice cloning, voice design,
+Upstream ships a Python API and two per-model Gradio demos; this launcher
+provides a single interface over both models instead. It exposes the four documented tasks -- zero-shot voice cloning, voice design,
 semantic editing, and acoustic editing -- over the same `fireredtts3.core`
 entry points used in the upstream README.
 
@@ -9,8 +9,9 @@ The Base and Instruct checkpoints are roughly 8.5 GB each and share a 3.8 GB
 audio autoencoder, so only one variant is ever resident: switching tabs to a
 task served by the other variant unloads the current one first.
 
-Upstream runs on CUDA only -- the device, the bfloat16 autocast, and the
-FlashAttention backend are all hardcoded -- so this interface is CUDA only too.
+Upstream runs on CUDA only -- the device and the bfloat16 autocast are
+hardcoded -- so this interface is CUDA only too. The hardcoded FlashAttention
+backend is swapped for PyTorch SDPA by the launcher's sdpa.patch.
 
 This file sits beside the upstream checkout rather than inside it, so that
 Reset and Update can wipe and re-clone `src/` without touching it.
@@ -297,15 +298,15 @@ def describe_runtime() -> str:
 def check_runtime():
     """Fail early and clearly on a GPU or a PyTorch build that cannot work.
 
-    Upstream hardcodes CUDA, a bfloat16 autocast, and FlashAttention 2, so
-    each of these is a hard requirement rather than a performance preference.
-    Checking here turns three confusing mid-inference failures into one
-    startup message.
+    Upstream hardcodes CUDA and a bfloat16 autocast, and FlashAttention 2
+    unless sdpa.patch applied, so each of these is a hard requirement rather
+    than a performance preference. Checking here turns confusing
+    mid-inference failures into one startup message.
     """
     if not torch.cuda.is_available():
         raise SystemExit(
-            "FireRedTTS3 requires a CUDA GPU. Upstream hardcodes the device, the bfloat16 "
-            "autocast, and the FlashAttention backend, so there is no CPU or MPS path."
+            "FireRedTTS3 requires a CUDA GPU. Upstream hardcodes the device and the "
+            "bfloat16 autocast, so there is no CPU or MPS path."
         )
 
     major, minor = torch.cuda.get_device_capability()

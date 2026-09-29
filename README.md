@@ -38,18 +38,20 @@ instead of downloading anything.
 
 Upstream hardcodes three things: `torch.device('cuda')`, a bfloat16 autocast
 on the backbone and the audio autoencoder, and
-`attn_implementation='flash_attention_2'`. Nothing here patches around them,
-so there is no CPU path, no Apple Silicon path, and no path for a GPU without
+`attn_implementation='flash_attention_2'`. `sdpa.patch` removes the
+FlashAttention requirement (see below), but the CUDA device and the bfloat16
+autocast stay, so there is no CPU path, no Apple Silicon path, and no path for a GPU without
 bfloat16 — a GTX 1080 or other pre-Ampere card cannot run this model, unlike
 the IndexTTS launcher this repository previously held.
 
 `torch.js` still selects a PyTorch build per platform, so the environment
 resolves anywhere; on NVIDIA it installs the CUDA 12.8 build of `torch==2.8.0`
-and `torchaudio==2.8.0`. `webui.py` then checks three things at startup, so a
+and `torchaudio==2.8.0`. `webui.py` then checks four things at startup, so a
 mismatch surfaces as one clear message instead of a crash mid-synthesis: that
 a CUDA device exists, that the installed PyTorch actually contains kernels for
-its `sm_XX` architecture, and that the card supports bfloat16 natively. It
-also warns below 15 GB of VRAM.
+its `sm_XX` architecture, that the card supports bfloat16 natively, and that
+`sdpa.patch` applied (or `flash_attn` is installed). It also warns below 15 GB
+of VRAM.
 
 ### Attention backend
 
