@@ -1,7 +1,7 @@
 {
   "title": "FireRedTTS3",
   "description": "Zero-shot voice cloning across 24 languages and 21 Chinese dialects, plus instruction-driven voice design and semantic and acoustic speech editing.",
-  "icon": "icon.jpeg",
+  "icon": "icon.png",
   "links": [
     {
       "title": "Upstream source",

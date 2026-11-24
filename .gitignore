@@ -58,7 +58,6 @@ outputs/
 voices/
 *.jpg
 *.jpeg
-!icon.jpeg
 example.png
 
 # Gradio
